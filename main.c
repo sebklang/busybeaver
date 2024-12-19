@@ -18,18 +18,18 @@ typedef struct tmch {
     unsigned char *strip;
 } tmch;
 
-int tmch_step(tmch *tm)
+void tmch_step(tmch *tm)
 {
-    int state_idx = tm->state - 'A';
-    size_t byte_idx = tm->head / 8;
+    int state_index = tm->state - 'A';
+    size_t byte_index = tm->head / 8;
     size_t bit_offset = tm->head % 8;
-    unsigned char byte = tm->strip[byte_idx];
+    unsigned char byte = tm->strip[byte_index];
     unsigned char input = (byte >> bit_offset) & 0x01;
-    int step_index = 2 * state_idx + input;
+    int step_index = 2 * state_index + input;
     tm_delta *step = &tm->table[step_index];
     unsigned char output_mask = step->output << bit_offset;
     unsigned char new_byte = byte | output_mask;
-    tm->strip[byte_idx] = new_byte;
+    tm->strip[byte_index] = new_byte;
     switch (step->dir) {
     case 'L':
         if (tm->head <= 0) {
@@ -47,14 +47,14 @@ int tmch_step(tmch *tm)
         break;
     default:
         fprintf(stderr, "default in tmch_step");
-        return -1;
+        exit(EXIT_FAILURE);
     }
     tm->state = step->nextstate;
-    return 0;
 }
 
 int main(int argc, char **argv)
 {
+    // Transition table (aka delta function)
     tm_delta my_table[] = {
         {1, 'R', 'B'}, {1, 'L', 'C'},
         {1, 'R', 'C'}, {1, 'R', 'B'},
@@ -63,27 +63,20 @@ int main(int argc, char **argv)
         {1, 'R', 'Z'}, {0, 'L', 'A'},
     };
 
-    tm_delta my_table_sus[] = {
-        {1, 'L', 'B'}, {1, 'R', 'C'},
-        {1, 'L', 'C'}, {1, 'L', 'B'},
-        {1, 'L', 'D'}, {0, 'R', 'E'},
-        {1, 'R', 'A'}, {1, 'R', 'D'},
-        {1, 'L', 'Z'}, {0, 'R', 'A'},
-    };
+    // Initialize turing machine
+    tmch tm = {'A', 1 << 14, (1 << 13) * 8, my_table};
+    tm.strip = calloc(tm.strip_len, sizeof(unsigned char));
+    printf("Started turing machine with %ld bytes\n", tm.strip_len);
 
-    tmch my_tm = {'A', 1 << 14, (1 << 13) * 8, my_table};
-    my_tm.strip = calloc(my_tm.strip_len, sizeof(unsigned char));
-    printf("SUS %ld\n", my_tm.strip_len);
-
-    while (my_tm.state != 'Z') {
-//        printf("%c", my_tm.state);
-        tmch_step(&my_tm);
+    // Emulate turing machine
+    while (tm.state != 'Z') {
+        tmch_step(&tm);
         num_steps++;
     }
-    printf("%c\n", my_tm.state);
 
-    for (int i = 0; i < my_tm.strip_len; i++) {
-        printf("%02X ", my_tm.strip[i]);
+    // Print end strip contents
+    for (int i = 0; i < tm.strip_len; i++) {
+        printf("%02X ", tm.strip[i]);
         if (i % 32 == 31) {
             printf("\n");
         }
