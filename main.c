@@ -25,12 +25,12 @@ void tmch_step(tmch *tm)
     size_t bit_offset = tm->head % 8;
     unsigned char byte = tm->strip[byte_index];
     unsigned char input = (byte >> bit_offset) & 0x01;
-    int step_index = 2 * state_index + input;
-    tm_delta *step = &tm->table[step_index];
-    unsigned char output_mask = step->output << bit_offset;
+    int delta_index = 2 * state_index + input;
+    tm_delta *delta = &tm->table[delta_index];
+    unsigned char output_mask = delta->output << bit_offset;
     unsigned char new_byte = byte | output_mask;
     tm->strip[byte_index] = new_byte;
-    switch (step->dir) {
+    switch (delta->dir) {
     case 'L':
         if (tm->head <= 0) {
             fprintf(stderr, "Head ran off the left after %lld steps.\n", num_steps);
@@ -49,7 +49,7 @@ void tmch_step(tmch *tm)
         fprintf(stderr, "default in tmch_step");
         exit(EXIT_FAILURE);
     }
-    tm->state = step->nextstate;
+    tm->state = delta->nextstate;
 }
 
 int main(int argc, char **argv)
