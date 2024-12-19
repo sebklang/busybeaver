@@ -46,7 +46,7 @@ void tmch_step(tmch *tm)
         tm->head++;
         break;
     default:
-        fprintf(stderr, "default in tmch_step");
+        fprintf(stderr, "default in tmch_step\n");
         exit(EXIT_FAILURE);
     }
     tm->state = delta->nextstate;
