@@ -5,8 +5,8 @@
 typedef enum halting_reason_t {
     REACHED_HALTING_STATE,
     SURPASSED_MAX_STEPS,
-    REACHED_RIGHT_EDGE,
-    REACHED_LEFT_EDGE
+    REACHED_LEFT_EDGE,
+    REACHED_RIGHT_EDGE
 } halting_reason_t;
 
 typedef struct tm_delta {
@@ -69,14 +69,18 @@ int main(int argc, char **argv)
     while (true) {
         tmch_step(&tm);
         num_steps++;
-        if (tm.state == 'Z')
+        if (tm.state == 'Z') {
             halting_reason = REACHED_HALTING_STATE; break;
-        if (num_steps >= max_steps)
+        }
+        if (num_steps >= max_steps) {
             halting_reason = SURPASSED_MAX_STEPS; break;
-        if (tm.head < 0)
+        }
+        if (tm.head < 0) {
             halting_reason = REACHED_LEFT_EDGE; break;
-        if (tm.head >= tm.strip_len * 8)
+        }
+        if (tm.head >= tm.strip_len * 8) {
             halting_reason = REACHED_RIGHT_EDGE; break;
+        }
     }
 
     // Print end strip contents
