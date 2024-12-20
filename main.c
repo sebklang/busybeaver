@@ -71,7 +71,7 @@ int main(int argc, char **argv)
         num_steps++;
         if (tm.state == 'Z')
             halting_reason = REACHED_HALTING_STATE; break;
-        if (num_steps > max_steps)
+        if (num_steps >= max_steps)
             halting_reason = SURPASSED_MAX_STEPS; break;
         if (tm.head < 0)
             halting_reason = REACHED_LEFT_EDGE; break;
