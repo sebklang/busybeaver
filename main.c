@@ -45,6 +45,19 @@ void tmch_step(tmch *tm)
     tm->state = delta->nextstate;
 }
 
+void tm_print(tmch *tm) {
+    for (int i = 0; i < tm->tape_len; i++) {
+        if (i % 16 == 0) {
+            printf("\n%04X    ", i);
+        }
+        if (tm->head / 8 == i) {
+            printf("(%d)", tm->head % 8);
+        }
+        printf("%02X ", tm->tape[i]);
+    }
+    printf("\n");
+}
+
 int main(int argc, char **argv)
 {
     unsigned long long int num_steps = 0ULL;
@@ -61,7 +74,7 @@ int main(int argc, char **argv)
     };
 
     // Initialize turing machine
-    tmch tm = {'A', 1 << 12, (1 << 11) * 8, my_table};
+    tmch tm = {'A', 1 << 10, (1 << 9) * 8, my_table};
     tm.tape = calloc(tm.tape_len, sizeof(unsigned char));
     printf("Started turing machine with %ld bytes\n", tm.tape_len);
 
@@ -81,16 +94,15 @@ int main(int argc, char **argv)
         if (tm.head >= tm.tape_len * 8) {
             stopping_reason = REACHED_RIGHT_EDGE; break;
         }
+        if (getchar() == 'q') {
+            exit(EXIT_SUCCESS);
+        }
+        tm_print(&tm);
+        fflush(stdout);
     }
 
     // Print end tape contents
-    for (int i = 0; i < tm.tape_len; i++) {
-        if (i % 16 == 0) {
-            printf("\n%04X    ", i);
-        }
-        printf("%02X ", tm.tape[i]);
-    }
-    printf("\n");
+    tm_print(&tm);
 
     // Print halting reason
     switch (stopping_reason) {
