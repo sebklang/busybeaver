@@ -2,12 +2,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef enum halting_reason_t {
-    REACHED_HALTING_STATE,
+typedef enum stopping_reason_t {
+    HALTED,
     SURPASSED_MAX_STEPS,
     REACHED_LEFT_EDGE,
     REACHED_RIGHT_EDGE
-} halting_reason_t;
+} stopping_reason_t;
 
 typedef struct tm_delta {
     unsigned char output;
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 {
     unsigned long long int num_steps = 0ULL;
     const unsigned long long int max_steps = ~0 & ~(1ULL << 63);
-    halting_reason_t halting_reason;
+    stopping_reason_t stopping_reason;
 
     // Transition table (aka delta function)
     tm_delta my_table[] = {
@@ -70,22 +70,22 @@ int main(int argc, char **argv)
         tmch_step(&tm);
         num_steps++;
         if (tm.state == 'Z') {
-            halting_reason = REACHED_HALTING_STATE; break;
+            stopping_reason = HALTED; break;
         }
         if (num_steps >= max_steps) {
-            halting_reason = SURPASSED_MAX_STEPS; break;
+            stopping_reason = SURPASSED_MAX_STEPS; break;
         }
         if (tm.head < 0) {
-            halting_reason = REACHED_LEFT_EDGE; break;
+            stopping_reason = REACHED_LEFT_EDGE; break;
         }
         if (tm.head >= tm.strip_len * 8) {
-            halting_reason = REACHED_RIGHT_EDGE; break;
+            stopping_reason = REACHED_RIGHT_EDGE; break;
         }
     }
 
     // Print end strip contents
     for (int i = 0; i < tm.strip_len; i++) {
-        if (i % 32 == 0) {
+        if (i % 16 == 0) {
             printf("\n%04X    ", i);
         }
         printf("%02X ", tm.strip[i]);
@@ -93,8 +93,8 @@ int main(int argc, char **argv)
     printf("\n");
 
     // Print halting reason
-    switch (halting_reason) {
-    case REACHED_HALTING_STATE:
+    switch (stopping_reason) {
+    case HALTED:
         printf("Turing machine halted after %lld steps.\n", num_steps);
         break;
     case SURPASSED_MAX_STEPS:
