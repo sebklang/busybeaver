@@ -23,7 +23,7 @@ typedef struct tmch {
     unsigned char *tape;
 } tmch;
 
-void tmch_step(tmch *tm)
+tm_delta *tmch_step(tmch *tm)
 {
     int state_index = tm->state - 'A';
     size_t byte_index = tm->head / 8;
@@ -43,20 +43,24 @@ void tmch_step(tmch *tm)
         exit(EXIT_FAILURE);
     }
     tm->state = delta->nextstate;
+    return delta;
 }
 
 void tm_print(tmch *tm) {
     for (int i = 0; i < tm->tape_len; i++) {
-        if (i % 16 == 0) {
+        if (i % 12 == 0) {
             printf("\n%04X    ", i);
         }
         if (tm->head / 8 == i) {
             printf("(%lld)", tm->head % 8);
         }
+        else {
+            printf("  ");
+        }
         unsigned char reversed = 0;
-        for (int i = 0; i < 8; i++) {
-            unsigned char ith_bit = (tm->tape[i] >> i) & 0x01;
-            reversed |= ith_bit << (7 - i);
+        for (int j = 0; j < 8; j++) {
+            unsigned char ith_bit = (tm->tape[i] >> j) & 0x01;
+            reversed |= ith_bit << (7 - j);
         }
         printf("%02X ", reversed);
     }
@@ -105,9 +109,14 @@ int main (int argc, char **argv)
         if (c != 'r') {
             c = getchar();
             if (c == 'q') exit(EXIT_SUCCESS);
-            tmch_step(&tm);
+            tm_delta *my_delta = tmch_step(&tm);
             num_steps++;
             tm_print(&tm);
+            printf("Wrote %d, moved %s, into state %c.\n",
+                my_delta->output,
+                my_delta->dir == 'L' ? "left" : "right",
+                my_delta->nextstate
+            );
             fflush(stdout);
         }
         else {
