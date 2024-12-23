@@ -32,8 +32,15 @@ tm_delta *tmch_step(tmch *tm)
     unsigned char input = (byte >> bit_offset) & 0x01;
     int table_index = 2 * state_index + input;
     tm_delta *delta = &tm->table[table_index];
-    unsigned char output_mask = delta->output << bit_offset;
-    unsigned char new_byte = byte | output_mask;
+    unsigned char output_mask = 1 << bit_offset;
+    unsigned char new_byte;
+    if (delta->output == 0) {
+        output_mask = ~output_mask;
+        new_byte = byte & output_mask;
+    }
+    else {
+        new_byte = byte | output_mask;
+    }
     tm->tape[byte_index] = new_byte;
     switch (delta->dir) {
     case 'L': tm->head--; break;
@@ -48,7 +55,7 @@ tm_delta *tmch_step(tmch *tm)
 
 void tm_print(tmch *tm) {
     for (int i = 0; i < tm->tape_len; i++) {
-        if (i % 12 == 0) {
+        if (i % 16 == 0) {
             printf("\n%04X    ", i);
         }
         if (tm->head / 8 == i) {
@@ -70,7 +77,7 @@ void tm_print(tmch *tm) {
 int main (int argc, char **argv)
 {
     unsigned long long int num_steps = 0ULL;
-    const unsigned long long int max_steps = ~0 & ~(1ULL << 63);
+    const unsigned long long int max_steps = 100000000ULL;
     stopping_reason_t stopping_reason;
 
     // Transition table (aka delta function)
@@ -83,13 +90,13 @@ int main (int argc, char **argv)
     };
 
     // Initialize turing machine
-    tmch tm = {'A', 1 << 10, (1 << 9) * 8, my_table};
+    tmch tm = {'A', 1 << 12, (1 << 11) * 8, my_table};
     tm.tape = calloc(tm.tape_len, sizeof(unsigned char));
     printf("Started TM with %ld bytes.\n", tm.tape_len);
 
     // Emulate turing machine
     char c = '\0'; // Terminal input
-    printf("The bits are least-significant first.\n"
+    printf("The bits are printed left-to-right.\n"
            "Press enter to step, r to run, or q to quit.\n");
     while (true) {
         // Stopping cases
@@ -111,12 +118,17 @@ int main (int argc, char **argv)
             if (c == 'q') exit(EXIT_SUCCESS);
             tm_delta *my_delta = tmch_step(&tm);
             num_steps++;
-            tm_print(&tm);
-            printf("Wrote %d, moved %s, into state %c.\n",
-                my_delta->output,
-                my_delta->dir == 'L' ? "left" : "right",
-                my_delta->nextstate
-            );
+            if (c != 'r') {
+                tm_print(&tm);
+                printf("Wrote %d, moved %s, into state %c.\n",
+                    my_delta->output,
+                    my_delta->dir == 'L' ? "left" : "right",
+                    my_delta->nextstate
+                );
+            }
+            else {
+                printf("Running machine...\n");
+            }
             fflush(stdout);
         }
         else {
