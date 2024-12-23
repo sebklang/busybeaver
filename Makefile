@@ -1,8 +1,8 @@
 release:
 	gcc *.c -o busybeaver.exe
-run: buildr
+run: release
 	./busybeaver.exe
 debug:
 	gcc -ggdb *.c -o debug.exe
-rundebug: buildd
+rundebug: debug
 	gdb debug.exe

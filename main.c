@@ -78,6 +78,8 @@ int main (int argc, char **argv)
 {
     unsigned long long int num_steps = 0ULL;
     const unsigned long long int max_steps = 100000000ULL;
+    const size_t tape_len = 1 << 12;
+    const unsigned long long int start_bit = (1 << 11) * 8;
     stopping_reason_t stopping_reason;
 
     // Transition table (aka delta function)
@@ -90,7 +92,7 @@ int main (int argc, char **argv)
     };
 
     // Initialize turing machine
-    tmch tm = {'A', 1 << 12, (1 << 11) * 8, my_table};
+    tmch tm = {'A', tape_len, start_bit, my_table};
     tm.tape = calloc(tm.tape_len, sizeof(unsigned char));
     printf("Started TM with %ld bytes.\n", tm.tape_len);
 

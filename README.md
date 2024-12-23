@@ -1,4 +1,6 @@
-Turing machine emulator.
+Bitwise two-symbol Turing machine emulator.
+
+In main, you can change the variables `max_steps`, `tape_len`, `start_bit` and `my_table`.
 
 Build release (gcc) with `make release`
 
