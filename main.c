@@ -2,6 +2,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+// Assuming array not pointer
+#define STRLEN(X) sizeof(X)
+
 typedef enum stopping_reason_t {
     HALTED,
     SURPASSED_MAX_STEPS,
@@ -74,6 +77,21 @@ void tm_print(tmch *tm) {
     printf("\n");
 }
 
+void init_table(tm_delta *table, int n_states, const char *str)
+{
+    int str_idx = 0;
+    for (int i = 0; i < n_states; i++) {
+        for (int j = 0; j < 2; j++) {
+            tm_delta *entry = &table[2 * i + j];
+            entry->output = str[str_idx] - '0';
+            entry->dir = str[str_idx + 1];
+            entry->nextstate = str[str_idx + 2];
+            str_idx += 3;
+        }
+        str_idx++;
+    }
+}
+
 int main (int argc, char **argv)
 {
     unsigned long long int num_steps = 0ULL;
@@ -82,18 +100,15 @@ int main (int argc, char **argv)
     const unsigned long long int start_bit = (1 << 11) * 8;
     stopping_reason_t stopping_reason;
 
-    // Transition table (aka delta function)
-    tm_delta my_table[] = {
-        {1, 'R', 'B'}, {1, 'L', 'C'},
-        {1, 'R', 'C'}, {1, 'R', 'B'},
-        {1, 'R', 'D'}, {0, 'L', 'E'},
-        {1, 'L', 'A'}, {1, 'L', 'D'},
-        {1, 'R', 'Z'}, {0, 'L', 'A'},
-    };
+    // Initialize transition table (my_table) from string
+    char table_string[] = "1RB1LC_1RC1RB_1RD0LE_1LA1LD_1RZ0LA";
+    int n_states = STRLEN(table_string) / 7; // Off by 1 without null terminator
+    tm_delta *my_table = malloc(2 * n_states * sizeof *my_table);
+    init_table(my_table, n_states, table_string);
 
     // Initialize turing machine
     tmch tm = {'A', tape_len, start_bit, my_table};
-    tm.tape = calloc(tm.tape_len, sizeof(unsigned char));
+    tm.tape = calloc(tm.tape_len, sizeof *tm.tape);
     printf("Started TM with %ld bytes.\n", tm.tape_len);
 
     // Emulate turing machine
@@ -159,6 +174,6 @@ int main (int argc, char **argv)
         fprintf(stderr, "Head ran off the right after %lld steps.\n", num_steps);
         break;
     }
-
+    
     return 0;
 }
