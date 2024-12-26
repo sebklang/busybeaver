@@ -69,8 +69,8 @@ void tm_print(tmch *tm) {
         }
         unsigned char reversed = 0;
         for (int j = 0; j < 8; j++) {
-            unsigned char ith_bit = (tm->tape[i] >> j) & 0x01;
-            reversed |= ith_bit << (7 - j);
+            unsigned char jth_bit = (tm->tape[i] >> j) & 0x01;
+            reversed |= jth_bit << (7 - j);
         }
         printf("%02X ", reversed);
     }
