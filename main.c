@@ -98,10 +98,10 @@ int main (int argc, char **argv)
     const unsigned long long int max_steps = 100000000ULL;
     const size_t tape_len = 1 << 12;
     const unsigned long long int start_bit = (1 << 11) * 8;
+    const char table_string[] = "1RB1LC_1RC1RB_1RD0LE_1LA1LD_1RZ0LA";
     stopping_reason_t stopping_reason;
 
     // Initialize transition table (my_table) from string
-    char table_string[] = "1RB1LC_1RC1RB_1RD0LE_1LA1LD_1RZ0LA";
     int n_states = STRLEN(table_string) / 7; // Off by 1 without null terminator
     tm_delta *my_table = malloc(2 * n_states * sizeof *my_table);
     init_table(my_table, n_states, table_string);
